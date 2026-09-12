@@ -18,11 +18,13 @@ If a request seems to need one of these, say so and propose the smaller version 
 
 | Path | What it is |
 | --- | --- |
-| `main.swift` | The whole app. One file, deliberately. |
-| `Info.plist` | Bundle declarations. Every key in it is load-bearing; the comments say why. |
+| `BrowserRouter/main.swift` | The whole app. One file, deliberately. |
+| `BrowserRouter/Info.plist` | Bundle declarations. Every key in it is load-bearing; the comments say why. |
 | `config.example.json` | Seeded to `~/.config/browser-router/config.json` on install if none exists. |
 | `install.sh` | The `curl \| sh` entry point. Also usable from a clone, and idempotent: re-running updates in place, `--no-default-prompt` skips the modal default-browser question for provisioning scripts. |
-| `README.md` | User-facing docs and the measured footprint table. |
+| `README.md` | User-facing docs, the measured footprint table, and the platform gotchas. |
+
+`BrowserRouter/` is the target directory an Xcode project would generate, so a project can be pointed at it later without moving files. There is no `.xcodeproj` and no `Package.swift`: the build is one `swiftc` line in `install.sh`.
 
 There is no test suite and no build system. Adding either needs a reason stronger than "projects usually have one".
 
@@ -31,7 +33,7 @@ There is no test suite and no build system. Adding either needs a reason stronge
 Compile, which is the only automatic check that exists:
 
 ```sh
-xcrun swiftc -O -framework AppKit -o /tmp/br-check main.swift
+xcrun swiftc -O -framework AppKit -o /tmp/br-check BrowserRouter/main.swift
 ```
 
 Shell and JSON:
@@ -64,16 +66,12 @@ Report the method with the number. A footprint figure with no stated measurement
 
 ## Constraints discovered the hard way
 
-These cost real time to find. Do not re-litigate them without new measurements.
+**The README's Footprint and Gotchas sections are the constraint list**, and they are measured rather than argued. Read them before proposing anything structural, and do not re-litigate them without new measurements. In short: AppKit cannot be dropped, the app must be a bundle declaring `http`/`https`, it cannot be an AppleScript applet, becoming the default browser needs `CFBundleDocumentTypes` for HTML, and a browser only produces a tab via scripting.
 
-- **AppKit cannot be dropped.** A Foundation-only build starts at 1.8 MB instead of 7.4 MB and never receives a link: LaunchServices holds the `GURL` event until the process checks in as an application, which only `NSApplication` does. A `CFRunLoop` draining `AEGetRegisteredMachPort()` was tried and the handler never fired.
-- **The app must be a bundle declaring `http`/`https`,** because only that receives the Apple Event carrying the URL.
-- **It cannot be an AppleScript applet.** The applet stub shows AppleScript's startup screen when another app launches it, so every link waited on a dialog.
-- **Becoming the default browser needs `CFBundleDocumentTypes` for HTML,** not just URL schemes, or `setDefaultApplication` fails with `NSCocoaErrorDomain` 256.
-- **Safari only produces a tab via scripting.** A plain open always makes a window, whatever the user's tab preferences say.
+Two more that are build concerns rather than user-facing ones:
+
 - **Apple Events go in-process,** via `NSAppleEventDescriptor`, never by shelling out to `osascript`. The subprocess cost ~26 MB and half the latency. The URL is event data, never interpolated into script text.
-- **Editing `Info.plist` invalidates the signature.** Sign the assembled bundle, then `lsregister -f` it, or LaunchServices answers from its cache.
-- **A link is never dropped.** An uninstalled browser, a broken config, a failed scripted open: each falls back one step, ending at a plain Safari open.
+- **Editing `Info.plist` invalidates the signature.** Assemble the bundle, then sign it, then `lsregister -f` it, in that order, or LaunchServices answers from its cache.
 
 ## Style
 

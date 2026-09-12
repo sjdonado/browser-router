@@ -22,7 +22,7 @@ command -v xcrun >/dev/null 2>&1 || {
 }
 
 # Run from a clone if there is one, otherwise fetch a throwaway copy.
-if [ -f "$(dirname "$0")/main.swift" ]; then
+if [ -f "$(dirname "$0")/BrowserRouter/main.swift" ]; then
   SRC="$(cd "$(dirname "$0")" && pwd)"
 else
   SRC="$(mktemp -d)"
@@ -33,8 +33,8 @@ fi
 echo "Building BrowserRouter..."
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
-xcrun swiftc -O -framework AppKit -o "$APP/Contents/MacOS/BrowserRouter" "$SRC/main.swift"
-cp "$SRC/Info.plist" "$APP/Contents/Info.plist"
+xcrun swiftc -O -framework AppKit -o "$APP/Contents/MacOS/BrowserRouter" "$SRC/BrowserRouter/main.swift"
+cp "$SRC/BrowserRouter/Info.plist" "$APP/Contents/Info.plist"
 # Editing Info.plist invalidates a signature, so sign the assembled bundle.
 codesign --force --sign - "$APP"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP"
