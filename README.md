@@ -10,6 +10,14 @@ curl -fsSL https://raw.githubusercontent.com/sjdonado/browser-router/main/instal
 
 It compiles the app into `~/Applications/BrowserRouter.app`, writes a starting config if there is none, and asks macOS to make it the default browser. Re-running updates an existing install in place and never touches an existing config, symlink into a dotfiles repository included. Add `sh -s -- --no-default-prompt` to skip the modal default-browser question, which is what a provisioning script wants.
 
+Or with Homebrew, which builds the same one Swift file from source:
+
+```sh
+brew install --build-from-source sjdonado/tap/browser-router
+```
+
+Then follow the caveats it prints: copy the bundle to `~/Applications`, register it, seed the config if there is none, and open it once to become the default browser.
+
 Needs the Xcode command line tools (`xcode-select --install`) and macOS 13 or newer. There is no DMG and no release binary on purpose: the app is one Swift file, building it takes seconds, and an ad-hoc signed local bundle needs no notarization.
 
 ## Configuring
