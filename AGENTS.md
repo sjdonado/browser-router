@@ -8,9 +8,9 @@ Everything else is subordinate to that. When a change trades footprint or launch
 
 ## Non-goals, and they are firm
 
-Do not add: a menu bar item, a settings window, a preferences UI, an onboarding screen, an icon, a dock presence, a daemon or login item, an updater, telemetry, a scripting language for the config, a DMG or notarized release, a package manager formula, CI that builds artifacts, a Swift package manifest, or a dependency of any kind.
+Do not add: a menu bar item, a settings window, a preferences UI, an onboarding screen, an icon, a dock presence, a daemon or login item, an updater, telemetry, a scripting language for the config, a DMG or notarized release, CI that builds artifacts, a Swift package manifest, or a dependency of any kind.
 
-The app has no UI on purpose. The config is a file the user edits. Distribution is `git clone` plus `swiftc`, which is why there is no release pipeline to maintain.
+The app has no UI on purpose. The config is a file the user edits. Distribution is `git clone` plus `swiftc`, plus a source-build Homebrew formula in a separate `homebrew-tap` repo, which is why there is no release pipeline for binaries to maintain. The tap compiles the same one Swift file locally, so there is no DMG, no bottle, and no notarization to maintain.
 
 If a request seems to need one of these, say so and propose the smaller version instead.
 
@@ -51,6 +51,8 @@ open http://localhost:3000   # lands in whatever the local-dev rule names
 ```
 
 Confirm the Safari path with `osascript -e 'tell application "Safari" to get URL of current tab of front window'`, and confirm nothing was spawned with `ps -Ao comm | grep osascript` while a link routes. A new *window* instead of a tab means the scripted path failed and it fell back to a plain open.
+
+A formula change lives in the separate `sjdonado/homebrew-tap` repo and is verified with `brew audit --strict --new browser-router`, `brew install --build-from-source sjdonado/tap/browser-router`, `brew test browser-router`, plus one real `open` routed through the brew bundle swapped into the registered `~/Applications` path and re-registered. `open <bundle-path> <url>` does not deliver the URL to an unregistered bundle, so only the registered path counts. Safari-side tab confirmation needs an interactive session with Automation permission; a headless shell cannot script Safari or list its windows on current macOS.
 
 Never claim a routing change works without opening a link. Compiling proves nothing about Apple Event delivery.
 
